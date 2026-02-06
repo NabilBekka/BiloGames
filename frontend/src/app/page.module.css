@@ -1,0 +1,119 @@
+.hero {
+  text-align: center;
+  padding: 48px 24px 32px;
+}
+
+.heroTitle {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--gray-800);
+  margin: 0;
+}
+
+.heroSubtitle {
+  color: var(--gray-500);
+  font-size: 1.1rem;
+  margin-top: 12px;
+}
+
+.gamesSection {
+  padding: 0 24px 60px;
+}
+
+.gamesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.gameCard {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.gameCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.gameIcon {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.gameInfo {
+  text-align: center;
+}
+
+.gameInfo h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin: 0;
+}
+
+.gameInfo span {
+  font-size: 0.85rem;
+  color: var(--gray-400);
+}
+
+.playBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.playBtn:hover {
+  transform: scale(1.02);
+  opacity: 0.9;
+}
+
+@media (max-width: 600px) {
+  .heroTitle {
+    font-size: 1.8rem;
+  }
+  
+  .gamesGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .gameCard {
+    padding: 16px;
+  }
+  
+  .gameIcon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.8rem;
+  }
+}

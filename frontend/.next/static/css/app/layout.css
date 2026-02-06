@@ -1,0 +1,44 @@
+/*!********************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[11].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[11].oneOf[12].use[3]!./src/styles/globals.css ***!
+  \********************************************************************************************************************************************************************************************************************************************************************/
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary: #6366F1;
+  --primary-light: #8B5CF6;
+  --primary-dark: #4F46E5;
+  --pink: #EC4899;
+  --orange: #F59E0B;
+  --green: #10B981;
+  --red: #EF4444;
+  --white: #FFFFFF;
+  --background: #F0F4F8;
+  --background-light: #FAFBFC;
+  --gray-50: #F8FAFC;
+  --gray-100: #F1F5F9;
+  --gray-200: #E2E8F0;
+  --gray-300: #CBD5E1;
+  --gray-400: #94A3B8;
+  --gray-500: #64748B;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1E293B;
+}
+
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(165deg, var(--background-light) 0%, var(--background) 50%, #E8EDF4 100%);
+  min-height: 100vh;
+  color: var(--gray-800);
+}
+
+.outfit {
+  font-family: 'Outfit', sans-serif;
+}
+

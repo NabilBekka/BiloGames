@@ -1,0 +1,104 @@
+.logoContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoIcon {
+  background: linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  width: 100%;
+  height: 100%;
+}
+
+.tile {
+  border-radius: 3px;
+}
+
+.purple {
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+}
+
+.pink {
+  background: linear-gradient(135deg, #EC4899, #F472B6);
+}
+
+.orange {
+  background: linear-gradient(135deg, #F59E0B, #FBBF24);
+}
+
+.green {
+  background: linear-gradient(135deg, #10B981, #34D399);
+}
+
+.logoText {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+}
+
+.bilo {
+  color: #6366F1;
+}
+
+.games {
+  color: #1E293B;
+}
+
+/* Sizes */
+.small .logoIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  padding: 5px;
+  gap: 2px;
+}
+
+.small .logoGrid {
+  gap: 2px;
+}
+
+.small .logoText {
+  font-size: 1.2rem;
+}
+
+.medium .logoIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  padding: 6px;
+}
+
+.medium .logoGrid {
+  gap: 3px;
+}
+
+.medium .logoText {
+  font-size: 1.4rem;
+}
+
+.large .logoIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  padding: 10px;
+}
+
+.large .logoGrid {
+  gap: 5px;
+}
+
+.large .tile {
+  border-radius: 5px;
+}
+
+.large .logoText {
+  font-size: 2rem;
+}
