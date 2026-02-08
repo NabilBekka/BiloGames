@@ -454,6 +454,19 @@
   text-decoration: underline;
 }
 
+.Modal_disabledInput__0BQUY {
+  background: var(--gray-100) !important;
+  color: var(--gray-500) !important;
+  cursor: not-allowed;
+}
+
+.Modal_verifiedBadge___I9rT {
+  color: var(--green);
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
 /*!****************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[11].oneOf[7].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[11].oneOf[7].use[3]!./src/components/Header.module.css ***!
   \****************************************************************************************************************************************************************************************************************************************************************************/

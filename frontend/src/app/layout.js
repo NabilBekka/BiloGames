@@ -1,18 +1,24 @@
+'use client';
+
 import '../styles/globals.css';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from '../context/AuthContext';
 
-export const metadata = {
-  title: 'BiloGames - Play and prove your genius',
-  description: 'Collection of brain games to test your intelligence',
-};
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <title>BiloGames - Play and prove your genius</title>
+        <meta name="description" content="Collection of brain games to test your intelligence" />
+      </head>
       <body>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

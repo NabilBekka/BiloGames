@@ -5,26 +5,39 @@ import { useAuth } from '../context/AuthContext';
 import Logo from './Logo';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
+import GoogleRegisterModal from './GoogleRegisterModal';
 import styles from './Header.module.css';
 
 export default function Header() {
   const { user, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showGoogleRegister, setShowGoogleRegister] = useState(false);
+  const [googleData, setGoogleData] = useState(null);
 
   const openLogin = () => {
     setShowRegister(false);
+    setShowGoogleRegister(false);
     setShowLogin(true);
   };
 
   const openRegister = () => {
     setShowLogin(false);
+    setShowGoogleRegister(false);
     setShowRegister(true);
   };
 
   const closeModals = () => {
     setShowLogin(false);
     setShowRegister(false);
+    setShowGoogleRegister(false);
+    setGoogleData(null);
+  };
+
+  const handleGoogleRegister = (data) => {
+    setShowLogin(false);
+    setGoogleData(data);
+    setShowGoogleRegister(true);
   };
 
   return (
@@ -53,7 +66,8 @@ export default function Header() {
       {showLogin && (
         <LoginModal 
           onClose={closeModals} 
-          onSwitchToRegister={openRegister} 
+          onSwitchToRegister={openRegister}
+          onGoogleRegister={handleGoogleRegister}
         />
       )}
       
@@ -61,6 +75,13 @@ export default function Header() {
         <RegisterModal 
           onClose={closeModals} 
           onSwitchToLogin={openLogin} 
+        />
+      )}
+
+      {showGoogleRegister && googleData && (
+        <GoogleRegisterModal
+          onClose={closeModals}
+          googleData={googleData}
         />
       )}
     </>

@@ -30,6 +30,7 @@ export function AuthProvider({ children }) {
     setLoading(false);
   };
 
+  // Login classique email/password
   const login = async (email, password) => {
     try {
       const res = await axios.post(`${API_URL}/auth/login`, { email, password });
@@ -41,6 +42,7 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Register classique email/password (email_verified = false)
   const register = async (data) => {
     try {
       const res = await axios.post(`${API_URL}/auth/register`, data);
@@ -52,13 +54,57 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Étape 1 Google: Vérifier le token et récupérer les infos
+  // Retourne soit l'utilisateur connecté, soit les données Google pour le formulaire
+  const googleAuth = async (credential) => {
+    try {
+      const res = await axios.post(`${API_URL}/auth/google`, { credential });
+      
+      if (res.data.isExistingUser) {
+        // Utilisateur existant - connexion directe
+        localStorage.setItem('token', res.data.token);
+        setUser(res.data.user);
+        return { success: true, isExistingUser: true };
+      } else {
+        // Nouvel utilisateur - retourner les données Google pour le formulaire
+        return { 
+          success: true, 
+          isExistingUser: false, 
+          googleData: res.data.googleData 
+        };
+      }
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Google login failed' };
+    }
+  };
+
+  // Étape 2 Google: Créer le compte avec toutes les infos (email_verified = true)
+  const googleRegister = async (data) => {
+    try {
+      const res = await axios.post(`${API_URL}/auth/google/register`, data);
+      localStorage.setItem('token', res.data.token);
+      setUser(res.data.user);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to create account' };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      register, 
+      googleAuth,
+      googleRegister,
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   );
