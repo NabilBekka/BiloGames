@@ -135,6 +135,25 @@ app.post('/api/auth/register', async (req, res) => {
     const user = result.rows[0];
     const token = generateToken(user);
     
+    // Envoyer email de bienvenue
+    await sendEmail(
+      email,
+      'Welcome to BiloGames! 🎮',
+      `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #6366F1;">🎮 Welcome to BiloGames!</h2>
+        <p>Hello ${firstname},</p>
+        <p>Thank you for joining BiloGames! We're excited to have you.</p>
+        <div style="background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+          <strong style="color: #B45309;">⚠️ Important:</strong>
+          <p style="margin: 8px 0 0 0; color: #92400E;">Please verify your email within <strong>5 days</strong> to keep your account active. Go to Settings in your account to verify.</p>
+        </div>
+        <p>Ready to play and prove your genius?</p>
+        <p>Best regards,<br>The BiloGames Team</p>
+      </div>
+      `
+    );
+    
     res.status(201).json({
       message: 'Account created successfully',
       user: {
@@ -143,6 +162,7 @@ app.post('/api/auth/register', async (req, res) => {
         firstname: user.firstname,
         lastname: user.lastname,
         username: user.username,
+        birthDate: user.birth_date,
         emailVerified: user.email_verified,
         createdAt: user.created_at
       },
@@ -187,6 +207,7 @@ app.post('/api/auth/login', async (req, res) => {
         firstname: user.firstname,
         lastname: user.lastname,
         username: user.username,
+        birthDate: user.birth_date,
         emailVerified: user.email_verified,
         createdAt: user.created_at
       },
@@ -269,6 +290,7 @@ app.post('/api/auth/google', async (req, res) => {
           firstname: user.firstname,
           lastname: user.lastname,
           username: user.username,
+          birthDate: user.birth_date,
           emailVerified: true,
           createdAt: user.created_at
         },
@@ -363,6 +385,22 @@ app.post('/api/auth/google/register', async (req, res) => {
     const user = result.rows[0];
     const token = generateToken(user);
     
+    // Envoyer email de bienvenue (Google = email déjà vérifié)
+    await sendEmail(
+      email,
+      'Welcome to BiloGames! 🎮',
+      `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #6366F1;">🎮 Welcome to BiloGames!</h2>
+        <p>Hello ${firstname},</p>
+        <p>Thank you for joining BiloGames with your Google account! We're excited to have you.</p>
+        <p style="color: #10B981;">✅ Your email is already verified.</p>
+        <p>Ready to play and prove your genius?</p>
+        <p>Best regards,<br>The BiloGames Team</p>
+      </div>
+      `
+    );
+    
     res.status(201).json({
       message: 'Account created successfully',
       user: {
@@ -371,6 +409,7 @@ app.post('/api/auth/google/register', async (req, res) => {
         firstname: user.firstname,
         lastname: user.lastname,
         username: user.username,
+        birthDate: user.birth_date,
         emailVerified: user.email_verified,
         createdAt: user.created_at
       },
@@ -843,6 +882,54 @@ app.post('/api/auth/reset-password', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// ============================================
+// CLEANUP UNVERIFIED ACCOUNTS (automatic)
+// Supprime les comptes non vérifiés après 5 jours
+// ============================================
+const cleanupUnverifiedAccounts = async () => {
+  try {
+    // Trouver les utilisateurs à supprimer (non vérifiés, créés il y a plus de 5 jours)
+    const result = await pool.query(
+      `SELECT id, email, firstname FROM users 
+       WHERE email_verified = false 
+       AND created_at < NOW() - INTERVAL '5 days'`
+    );
+    
+    for (const user of result.rows) {
+      // Envoyer email de notification
+      await sendEmail(
+        user.email,
+        'Your BiloGames account has been deleted',
+        `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #EF4444;">Account Deleted</h2>
+          <p>Hello ${user.firstname},</p>
+          <p>Your BiloGames account has been <strong>permanently deleted</strong> because you did not verify your email within 5 days of registration.</p>
+          <p>If you wish to use BiloGames, you can create a new account at any time.</p>
+          <p>Best regards,<br>The BiloGames Team</p>
+        </div>
+        `
+      );
+      
+      // Supprimer l'utilisateur
+      await pool.query('DELETE FROM users WHERE id = $1', [user.id]);
+      console.log(`Deleted unverified account: ${user.email}`);
+    }
+    
+    if (result.rows.length > 0) {
+      console.log(`Cleanup: Deleted ${result.rows.length} unverified account(s)`);
+    }
+  } catch (error) {
+    console.error('Cleanup error:', error);
+  }
+};
+
+// Exécuter le nettoyage toutes les heures
+setInterval(cleanupUnverifiedAccounts, 60 * 60 * 1000);
+
+// Exécuter aussi au démarrage du serveur (après un délai de 10 secondes)
+setTimeout(cleanupUnverifiedAccounts, 10000);
 
 // Start server
 app.listen(PORT, () => {
