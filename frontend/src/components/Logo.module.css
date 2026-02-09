@@ -102,3 +102,13 @@
 .large .logoText {
   font-size: 2rem;
 }
+
+.clickable {
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.clickable:hover {
+  transform: scale(1.02);
+}

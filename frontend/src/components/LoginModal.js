@@ -39,10 +39,8 @@ export default function LoginModal({ onClose, onSwitchToRegister, onGoogleRegist
       
       if (result.success) {
         if (result.isExistingUser) {
-          // Utilisateur existant - connexion réussie
           onClose();
         } else {
-          // Nouvel utilisateur - ouvrir le formulaire de register avec données Google
           onGoogleRegister(result.googleData);
         }
       } else {
@@ -60,10 +58,6 @@ export default function LoginModal({ onClose, onSwitchToRegister, onGoogleRegist
     onError: () => setError('Google login failed'),
     flow: 'implicit'
   });
-
-  const handleFacebookLogin = () => {
-    alert('Facebook login coming soon!');
-  };
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -100,13 +94,6 @@ export default function LoginModal({ onClose, onSwitchToRegister, onGoogleRegist
               {loading ? 'Loading...' : 'Continue with Google'}
             </button>
 
-            <button className={`${styles.socialBtn} ${styles.facebook}`} onClick={handleFacebookLogin}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-              Continue with Facebook
-            </button>
-
             <div className={styles.divider}>
               <span>or</span>
             </div>
@@ -121,11 +108,10 @@ export default function LoginModal({ onClose, onSwitchToRegister, onGoogleRegist
           </div>
         ) : (
           <form className={styles.content} onSubmit={handleEmailLogin}>
-            <button type="button" className={styles.backBtn} onClick={() => setView('options')}>
+            <button type="button" className={styles.backBtnTop} onClick={() => setView('options')}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7" />
               </svg>
-              Back
             </button>
 
             <h2 className={styles.title}>Login with Email</h2>

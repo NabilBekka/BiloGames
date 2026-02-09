@@ -158,6 +158,12 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={`${styles.modal} ${styles.registerModal}`} onClick={(e) => e.stopPropagation()}>
+        <button className={styles.backBtnTop} onClick={onSwitchToLogin}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </button>
+
         <button className={styles.closeBtn} onClick={onClose}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
