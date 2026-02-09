@@ -118,7 +118,7 @@ app.post('/api/auth/register', async (req, res) => {
     // Vérifier si username existe
     const usernameExists = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
     if (usernameExists.rows.length > 0) {
-      return res.status(400).json({ error: 'Username already taken' });
+      return res.status(400).json({ error: 'Username already used' });
     }
     
     // Hash mot de passe
@@ -362,7 +362,7 @@ app.post('/api/auth/google/register', async (req, res) => {
     // Vérifier si username existe déjà
     const usernameExists = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
     if (usernameExists.rows.length > 0) {
-      return res.status(400).json({ error: 'Username already taken' });
+      return res.status(400).json({ error: 'Username already used' });
     }
     
     // Vérifier si google_id existe déjà
@@ -530,7 +530,7 @@ app.put('/api/auth/update', authenticateToken, async (req, res) => {
       // Vérifier si le username existe déjà
       const usernameExists = await pool.query('SELECT id FROM users WHERE username = $1 AND id != $2', [username, userId]);
       if (usernameExists.rows.length > 0) {
-        return res.status(400).json({ error: 'Username already taken' });
+        return res.status(400).json({ error: 'Username already used' });
       }
       updateFields.push(`username = $${paramCount}`);
       updateValues.push(username);
@@ -623,6 +623,22 @@ app.delete('/api/auth/delete', authenticateToken, async (req, res) => {
     
     // Supprimer l'utilisateur
     await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+    
+    // Envoyer email de confirmation de suppression
+    await sendEmail(
+      user.email,
+      'Your BiloGames account has been deleted',
+      `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #6366F1;">🎮 BiloGames</h2>
+        <p>Hello ${user.firstname},</p>
+        <p>We are sorry to see you go. Your BiloGames account has been <strong>permanently deleted</strong> as per your request.</p>
+        <p>All your data has been removed from our servers.</p>
+        <p>If you ever want to come back, you're always welcome to create a new account!</p>
+        <p>Best regards,<br>The BiloGames Team</p>
+      </div>
+      `
+    );
     
     res.json({ message: 'Account deleted successfully' });
     
@@ -729,6 +745,22 @@ app.post('/api/auth/verify-email', authenticateToken, async (req, res) => {
     
     const user = userResult.rows[0];
     const token = generateToken(user);
+    
+    // Envoyer email de confirmation de vérification
+    await sendEmail(
+      user.email,
+      'Email verified successfully! ✅',
+      `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #10B981;">✅ Email Verified!</h2>
+        <p>Hello ${user.firstname},</p>
+        <p>Great news! Your email has been <strong>successfully verified</strong>.</p>
+        <p>Your BiloGames account is now fully activated. You can enjoy all features without any restrictions.</p>
+        <p>Ready to play and prove your genius? 🎮</p>
+        <p>Best regards,<br>The BiloGames Team</p>
+      </div>
+      `
+    );
     
     res.json({
       message: 'Email verified successfully',
