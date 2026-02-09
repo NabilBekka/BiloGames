@@ -4,6 +4,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
+const nodemailer = require('nodemailer');
 const pool = require('./db');
 
 const app = express();
@@ -11,6 +12,38 @@ const PORT = process.env.PORT || 5000;
 
 // Google OAuth Client
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Email transporter (configure with your SMTP)
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: process.env.SMTP_PORT || 587,
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
+
+// Generate 6-digit code
+const generateCode = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Send email helper
+const sendEmail = async (to, subject, html) => {
+  try {
+    await transporter.sendMail({
+      from: `"BiloGames" <${process.env.SMTP_USER}>`,
+      to,
+      subject,
+      html
+    });
+    return true;
+  } catch (error) {
+    console.error('Email send error:', error);
+    return false;
+  }
+};
 
 // Middleware
 app.use(cors({
@@ -556,6 +589,257 @@ app.delete('/api/auth/delete', authenticateToken, async (req, res) => {
     
   } catch (error) {
     console.error('Delete user error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ============================================
+// SEND EMAIL VERIFICATION CODE (protected)
+// ============================================
+app.post('/api/auth/send-verification', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Récupérer l'utilisateur
+    const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const user = userResult.rows[0];
+    
+    if (user.email_verified) {
+      return res.status(400).json({ error: 'Email already verified' });
+    }
+    
+    // Supprimer les anciens codes
+    await pool.query('DELETE FROM email_verification_codes WHERE user_id = $1', [userId]);
+    
+    // Générer un nouveau code (expire dans 15 minutes)
+    const code = generateCode();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    
+    await pool.query(
+      'INSERT INTO email_verification_codes (user_id, code, expires_at) VALUES ($1, $2, $3)',
+      [userId, code, expiresAt]
+    );
+    
+    // Envoyer l'email
+    const emailSent = await sendEmail(
+      user.email,
+      'Verify your BiloGames account',
+      `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #6366F1;">🎮 BiloGames</h2>
+        <p>Hello ${user.firstname},</p>
+        <p>Your verification code is:</p>
+        <div style="background: #f3f4f6; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #6366F1;">${code}</span>
+        </div>
+        <p>This code expires in 15 minutes.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+      </div>
+      `
+    );
+    
+    if (!emailSent) {
+      return res.status(500).json({ error: 'Failed to send email. Please try again.' });
+    }
+    
+    res.json({ message: 'Verification code sent to your email' });
+    
+  } catch (error) {
+    console.error('Send verification error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ============================================
+// VERIFY EMAIL CODE (protected)
+// ============================================
+app.post('/api/auth/verify-email', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { code } = req.body;
+    
+    if (!code || code.length !== 6) {
+      return res.status(400).json({ error: 'Invalid code format' });
+    }
+    
+    // Vérifier le code
+    const codeResult = await pool.query(
+      'SELECT * FROM email_verification_codes WHERE user_id = $1 AND code = $2 AND expires_at > NOW()',
+      [userId, code]
+    );
+    
+    if (codeResult.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid or expired code' });
+    }
+    
+    // Marquer l'email comme vérifié
+    await pool.query('UPDATE users SET email_verified = true WHERE id = $1', [userId]);
+    
+    // Supprimer le code utilisé
+    await pool.query('DELETE FROM email_verification_codes WHERE user_id = $1', [userId]);
+    
+    // Récupérer l'utilisateur mis à jour
+    const userResult = await pool.query(
+      'SELECT id, email, firstname, lastname, username, birth_date, email_verified, created_at FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    const user = userResult.rows[0];
+    const token = generateToken(user);
+    
+    res.json({
+      message: 'Email verified successfully',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        username: user.username,
+        birthDate: user.birth_date,
+        emailVerified: user.email_verified,
+        createdAt: user.created_at
+      },
+      token
+    });
+    
+  } catch (error) {
+    console.error('Verify email error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ============================================
+// REQUEST PASSWORD RESET (public)
+// ============================================
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    
+    // Vérifier si l'utilisateur existe
+    const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    
+    // Pour des raisons de sécurité, on renvoie toujours le même message
+    if (userResult.rows.length === 0) {
+      return res.json({ message: 'If this email exists, a reset code has been sent' });
+    }
+    
+    const user = userResult.rows[0];
+    
+    // Supprimer les anciens codes
+    await pool.query('DELETE FROM password_reset_codes WHERE email = $1', [email]);
+    
+    // Générer un nouveau code (expire dans 15 minutes)
+    const code = generateCode();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    
+    await pool.query(
+      'INSERT INTO password_reset_codes (email, code, expires_at) VALUES ($1, $2, $3)',
+      [email, code, expiresAt]
+    );
+    
+    // Envoyer l'email
+    await sendEmail(
+      email,
+      'Reset your BiloGames password',
+      `
+      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #6366F1;">🎮 BiloGames</h2>
+        <p>Hello ${user.firstname},</p>
+        <p>You requested to reset your password. Your code is:</p>
+        <div style="background: #f3f4f6; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #6366F1;">${code}</span>
+        </div>
+        <p>This code expires in 15 minutes.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+      </div>
+      `
+    );
+    
+    res.json({ message: 'If this email exists, a reset code has been sent' });
+    
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ============================================
+// VERIFY RESET CODE (public)
+// ============================================
+app.post('/api/auth/verify-reset-code', async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    
+    if (!email || !code || code.length !== 6) {
+      return res.status(400).json({ error: 'Email and valid code are required' });
+    }
+    
+    // Vérifier le code
+    const codeResult = await pool.query(
+      'SELECT * FROM password_reset_codes WHERE email = $1 AND code = $2 AND expires_at > NOW() AND used = false',
+      [email, code]
+    );
+    
+    if (codeResult.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid or expired code' });
+    }
+    
+    res.json({ message: 'Code verified', valid: true });
+    
+  } catch (error) {
+    console.error('Verify reset code error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ============================================
+// RESET PASSWORD (public)
+// ============================================
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+    
+    // Validation mot de passe
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase and special character' });
+    }
+    
+    // Vérifier le code
+    const codeResult = await pool.query(
+      'SELECT * FROM password_reset_codes WHERE email = $1 AND code = $2 AND expires_at > NOW() AND used = false',
+      [email, code]
+    );
+    
+    if (codeResult.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid or expired code' });
+    }
+    
+    // Hash le nouveau mot de passe
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    
+    // Mettre à jour le mot de passe
+    await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashedPassword, email]);
+    
+    // Marquer le code comme utilisé
+    await pool.query('UPDATE password_reset_codes SET used = true WHERE email = $1 AND code = $2', [email, code]);
+    
+    res.json({ message: 'Password reset successfully' });
+    
+  } catch (error) {
+    console.error('Reset password error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

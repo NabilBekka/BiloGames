@@ -138,6 +138,30 @@
   background: rgba(239, 68, 68, 0.1);
   padding: 4px 10px;
   border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.notVerified:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.forgotLink {
+  display: block;
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.forgotLink:hover {
+  text-decoration: underline;
 }
 
 .editBtn {

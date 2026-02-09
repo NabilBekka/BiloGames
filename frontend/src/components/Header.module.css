@@ -39,6 +39,26 @@
   gap: 12px;
 }
 
+.verifyAlert {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--red);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.verifyAlert:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
 .greeting {
   font-family: 'DM Sans', sans-serif;
   font-size: 0.95rem;

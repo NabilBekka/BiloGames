@@ -491,6 +491,100 @@
   cursor: not-allowed;
 }
 
+.Modal_iconCircle__I8wya {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.Modal_success__caHpB {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--green);
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.Modal_codeInputs__pb6en {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.Modal_codeInput__Oz_SS {
+  width: 48px;
+  height: 56px;
+  border: 2px solid var(--gray-200);
+  border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--gray-800);
+  transition: all 0.2s;
+}
+
+.Modal_codeInput__Oz_SS:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.Modal_resendText__ECTPF {
+  text-align: center;
+  margin-top: 20px;
+  color: var(--gray-500);
+  font-size: 0.9rem;
+}
+
+.Modal_timerText__FsXe8 {
+  color: var(--gray-400);
+}
+
+.Modal_resendBtn__usKCH {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.Modal_resendBtn__usKCH:hover {
+  text-decoration: underline;
+}
+
+.Modal_forgotPassword__7oBNp {
+  display: block;
+  text-align: right;
+  margin-top: -8px;
+  margin-bottom: 16px;
+}
+
+.Modal_forgotPasswordLink__FfrCg {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.Modal_forgotPasswordLink__FfrCg:hover {
+  text-decoration: underline;
+}
+
 .Modal_verifiedBadge___I9rT {
   color: var(--green);
   font-size: 0.8rem;
@@ -542,6 +636,26 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.Header_verifyAlert__cI6lw {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--red);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.Header_verifyAlert__cI6lw:hover {
+  background: rgba(239, 68, 68, 0.2);
 }
 
 .Header_greeting__ZgPL2 {
@@ -825,6 +939,30 @@
   background: rgba(239, 68, 68, 0.1);
   padding: 4px 10px;
   border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings_notVerified__VGbrs:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.settings_forgotLink__h3_LJ {
+  display: block;
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.settings_forgotLink__h3_LJ:hover {
+  text-decoration: underline;
 }
 
 .settings_editBtn__KsSzf {

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import Header from '../../components/Header';
+import VerifyEmailModal from '../../components/VerifyEmailModal';
 import styles from './settings.module.css';
 
 export default function SettingsPage() {
@@ -27,6 +28,9 @@ export default function SettingsPage() {
   const [showDeletePassword, setShowDeletePassword] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Verify email modal
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -66,6 +70,10 @@ export default function SettingsPage() {
     setNewPassword('');
     setConfirmPassword('');
     setError('');
+  };
+
+  const handleForgotPassword = () => {
+    router.push('/forgot-password');
   };
 
   const handleSave = async () => {
@@ -146,8 +154,24 @@ export default function SettingsPage() {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Not set';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Not set';
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    } catch {
+      return 'Not set';
+    }
+  };
+
+  const getDateInputValue = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      return date.toISOString().split('T')[0];
+    } catch {
+      return '';
+    }
   };
 
   return (
@@ -266,7 +290,7 @@ export default function SettingsPage() {
                   <button className={styles.cancelBtn} onClick={cancelEditing}>Cancel</button>
                 </div>
               ) : (
-                <button className={styles.editBtn} onClick={() => startEditing('birthDate', user.birthDate?.split('T')[0])}>
+                <button className={styles.editBtn} onClick={() => startEditing('birthDate', getDateInputValue(user.birthDate))}>
                   Edit
                 </button>
               )}
@@ -284,7 +308,9 @@ export default function SettingsPage() {
                   {user.emailVerified ? (
                     <span className={styles.verified}>Verified</span>
                   ) : (
-                    <span className={styles.notVerified}>Not verified</span>
+                    <button className={styles.notVerified} onClick={() => setShowVerifyModal(true)}>
+                      Not verified - Click to verify
+                    </button>
                   )}
                 </span>
                 {editingField === 'email' ? (
@@ -373,6 +399,9 @@ export default function SettingsPage() {
                     {showCurrentPassword ? '👁' : '👁‍🗨'}
                   </button>
                 </div>
+                <button className={styles.forgotLink} onClick={handleForgotPassword}>
+                  Forgot password?
+                </button>
               </div>
               <button 
                 className={styles.saveBtn} 
@@ -432,6 +461,9 @@ export default function SettingsPage() {
                   {showDeletePassword ? '👁' : '👁‍🗨'}
                 </button>
               </div>
+              <button className={styles.forgotLink} onClick={handleForgotPassword}>
+                Forgot password?
+              </button>
             </div>
             
             <div className={styles.modalActions}>
@@ -448,6 +480,11 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Verify Email Modal */}
+      {showVerifyModal && (
+        <VerifyEmailModal onClose={() => setShowVerifyModal(false)} />
       )}
     </>
   );

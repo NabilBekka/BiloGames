@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import Logo from './Logo';
 import styles from './Modal.module.css';
 
 export default function LoginModal({ onClose, onSwitchToRegister, onGoogleRegister }) {
+  const router = useRouter();
   const { login, googleAuth } = useAuth();
   const [view, setView] = useState('options'); // options, email
   const [email, setEmail] = useState('');
@@ -58,6 +60,11 @@ export default function LoginModal({ onClose, onSwitchToRegister, onGoogleRegist
     onError: () => setError('Google login failed'),
     flow: 'implicit'
   });
+
+  const handleForgotPassword = () => {
+    onClose();
+    router.push('/forgot-password');
+  };
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -157,6 +164,12 @@ export default function LoginModal({ onClose, onSwitchToRegister, onGoogleRegist
                   )}
                 </button>
               </div>
+            </div>
+
+            <div className={styles.forgotPassword}>
+              <button type="button" className={styles.forgotPasswordLink} onClick={handleForgotPassword}>
+                Forgot password?
+              </button>
             </div>
 
             <button type="submit" className={styles.submitBtn} disabled={loading}>

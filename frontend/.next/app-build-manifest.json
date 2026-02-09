@@ -17,6 +17,12 @@
       "static/chunks/main-app.js",
       "static/css/app/settings/page.css",
       "static/chunks/app/settings/page.js"
+    ],
+    "/forgot-password/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/forgot-password/page.css",
+      "static/chunks/app/forgot-password/page.js"
     ]
   }
 }

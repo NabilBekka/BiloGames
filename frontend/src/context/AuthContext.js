@@ -55,18 +55,15 @@ export function AuthProvider({ children }) {
   };
 
   // Étape 1 Google: Vérifier le token et récupérer les infos
-  // Retourne soit l'utilisateur connecté, soit les données Google pour le formulaire
   const googleAuth = async (credential) => {
     try {
       const res = await axios.post(`${API_URL}/auth/google`, { credential });
       
       if (res.data.isExistingUser) {
-        // Utilisateur existant - connexion directe
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
         return { success: true, isExistingUser: true };
       } else {
-        // Nouvel utilisateur - retourner les données Google pour le formulaire
         return { 
           success: true, 
           isExistingUser: false, 
@@ -129,6 +126,66 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Send email verification code
+  const sendVerificationCode = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/auth/send-verification`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to send code' };
+    }
+  };
+
+  // Verify email with code
+  const verifyEmail = async (code) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/auth/verify-email`, { code }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+      }
+      setUser(res.data.user);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Verification failed' };
+    }
+  };
+
+  // Request password reset
+  const forgotPassword = async (email) => {
+    try {
+      await axios.post(`${API_URL}/auth/forgot-password`, { email });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to send reset email' };
+    }
+  };
+
+  // Verify reset code
+  const verifyResetCode = async (email, code) => {
+    try {
+      await axios.post(`${API_URL}/auth/verify-reset-code`, { email, code });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Invalid code' };
+    }
+  };
+
+  // Reset password
+  const resetPassword = async (email, code, newPassword) => {
+    try {
+      await axios.post(`${API_URL}/auth/reset-password`, { email, code, newPassword });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Reset failed' };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -139,6 +196,11 @@ export function AuthProvider({ children }) {
       googleRegister,
       updateUser,
       deleteAccount,
+      sendVerificationCode,
+      verifyEmail,
+      forgotPassword,
+      verifyResetCode,
+      resetPassword,
       logout 
     }}>
       {children}

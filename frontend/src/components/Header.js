@@ -7,6 +7,7 @@ import Logo from './Logo';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
 import GoogleRegisterModal from './GoogleRegisterModal';
+import VerifyEmailModal from './VerifyEmailModal';
 import styles from './Header.module.css';
 
 export default function Header() {
@@ -15,6 +16,7 @@ export default function Header() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showGoogleRegister, setShowGoogleRegister] = useState(false);
+  const [showVerifyEmail, setShowVerifyEmail] = useState(false);
   const [googleData, setGoogleData] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -30,6 +32,19 @@ export default function Header() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Calculer les jours restants pour vérifier l'email
+  const getDaysRemaining = () => {
+    if (!user || user.emailVerified || !user.createdAt) return null;
+    const createdDate = new Date(user.createdAt);
+    const deadline = new Date(createdDate.getTime() + 5 * 24 * 60 * 60 * 1000); // 5 jours
+    const now = new Date();
+    const diffTime = deadline - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  const daysRemaining = getDaysRemaining();
 
   const openLogin = () => {
     setShowRegister(false);
@@ -47,6 +62,7 @@ export default function Header() {
     setShowLogin(false);
     setShowRegister(false);
     setShowGoogleRegister(false);
+    setShowVerifyEmail(false);
     setGoogleData(null);
   };
 
@@ -67,6 +83,10 @@ export default function Header() {
     router.push('/settings');
   };
 
+  const handleVerifyClick = () => {
+    setShowVerifyEmail(true);
+  };
+
   // Générer les initiales
   const getInitials = () => {
     if (!user) return '';
@@ -82,6 +102,16 @@ export default function Header() {
         
         {user ? (
           <div className={styles.userSection} ref={dropdownRef}>
+            {!user.emailVerified && daysRemaining !== null && (
+              <button className={styles.verifyAlert} onClick={handleVerifyClick}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left to verify email
+              </button>
+            )}
             <span className={styles.greeting}>Hello {user.username}</span>
             <button 
               className={styles.avatarBtn}
@@ -151,6 +181,10 @@ export default function Header() {
           onClose={closeModals}
           googleData={googleData}
         />
+      )}
+
+      {showVerifyEmail && (
+        <VerifyEmailModal onClose={closeModals} />
       )}
     </>
   );
