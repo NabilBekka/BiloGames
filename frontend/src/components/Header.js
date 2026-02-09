@@ -128,6 +128,7 @@ export default function Header() {
                   <div className={styles.avatarSmall}>{getInitials()}</div>
                   <div className={styles.userInfo}>
                     <span className={styles.userName}>{user.firstname} {user.lastname}</span>
+                    <span className={styles.odientifiant}>ID: {user.odientifiant}</span>
                     <span className={styles.userEmail}>{user.email}</span>
                   </div>
                 </div>

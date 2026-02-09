@@ -187,6 +187,14 @@ export default function SettingsPage() {
           <div className={styles.section}>
             <h2 className={styles.sectionTitle}>Personal Information</h2>
 
+            {/* User ID - Non modifiable */}
+            <div className={styles.field}>
+              <div className={styles.fieldInfo}>
+                <span className={styles.fieldLabel}>ID</span>
+                <span className={styles.fieldValueId}>{user.odientifiant || 'Not assigned'}</span>
+              </div>
+            </div>
+
             {/* First Name */}
             <div className={styles.field}>
               <div className={styles.fieldInfo}>

@@ -750,6 +750,17 @@
   font-size: 0.95rem;
 }
 
+.Header_odientifiant__k5D1e {
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(99, 102, 241, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  width: -moz-fit-content;
+  width: fit-content;
+}
+
 .Header_userEmail__pLU0U {
   color: var(--gray-500);
   font-size: 0.8rem;
@@ -899,6 +910,19 @@
   font-size: 1rem;
   color: var(--gray-800);
   font-weight: 500;
+}
+
+.settings_fieldValueId__N9pzI {
+  font-size: 1.1rem;
+  color: var(--primary);
+  font-weight: 700;
+  font-family: 'Outfit', monospace;
+  background: rgba(99, 102, 241, 0.1);
+  padding: 6px 14px;
+  border-radius: 10px;
+  width: -moz-fit-content;
+  width: fit-content;
+  letter-spacing: 2px;
 }
 
 .settings_fieldDescription__IKEex {

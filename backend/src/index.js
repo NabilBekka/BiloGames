@@ -29,6 +29,20 @@ const generateCode = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+// Generate 8-digit unique user ID
+const generateUserId = async () => {
+  let uniqueId;
+  let exists = true;
+  
+  while (exists) {
+    uniqueId = Math.floor(10000000 + Math.random() * 90000000).toString();
+    const result = await pool.query('SELECT id FROM users WHERE user_id = $1', [uniqueId]);
+    exists = result.rows.length > 0;
+  }
+  
+  return uniqueId;
+};
+
 // Send email helper
 const sendEmail = async (to, subject, html) => {
   try {
@@ -124,12 +138,15 @@ app.post('/api/auth/register', async (req, res) => {
     // Hash mot de passe
     const hashedPassword = await bcrypt.hash(password, 12);
     
+    // Générer un user_id unique
+    const uniqueUserId = await generateUserId();
+    
     // Créer utilisateur avec email_verified = false
     const result = await pool.query(
-      `INSERT INTO users (email, password, firstname, lastname, username, birth_date, email_verified, created_at) 
-       VALUES ($1, $2, $3, $4, $5, $6, false, NOW()) 
-       RETURNING id, email, firstname, lastname, username, birth_date, email_verified, created_at`,
-      [email, hashedPassword, firstname, lastname, username, birthDate]
+      `INSERT INTO users (user_id, email, password, firstname, lastname, username, birth_date, email_verified, created_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, false, NOW()) 
+       RETURNING id, user_id, email, firstname, lastname, username, birth_date, email_verified, created_at`,
+      [uniqueUserId, email, hashedPassword, firstname, lastname, username, birthDate]
     );
     
     const user = result.rows[0];
@@ -158,6 +175,7 @@ app.post('/api/auth/register', async (req, res) => {
       message: 'Account created successfully',
       user: {
         id: user.id,
+        odientifiant: user.user_id,
         email: user.email,
         firstname: user.firstname,
         lastname: user.lastname,
@@ -203,6 +221,7 @@ app.post('/api/auth/login', async (req, res) => {
       message: 'Login successful',
       user: {
         id: user.id,
+        odientifiant: user.user_id,
         email: user.email,
         firstname: user.firstname,
         lastname: user.lastname,
@@ -286,6 +305,7 @@ app.post('/api/auth/google', async (req, res) => {
         message: 'Login successful',
         user: {
           id: user.id,
+          odientifiant: user.user_id,
           email: user.email,
           firstname: user.firstname,
           lastname: user.lastname,
@@ -374,12 +394,15 @@ app.post('/api/auth/google/register', async (req, res) => {
     // Hash mot de passe
     const hashedPassword = await bcrypt.hash(password, 12);
     
+    // Générer un user_id unique
+    const uniqueUserId = await generateUserId();
+    
     // Créer le compte avec email_verified = true (car Google)
     const result = await pool.query(
-      `INSERT INTO users (email, password, firstname, lastname, username, birth_date, google_id, email_verified, created_at) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW()) 
-       RETURNING id, email, firstname, lastname, username, birth_date, google_id, email_verified, created_at`,
-      [email, hashedPassword, firstname, lastname, username, birthDate, googleId]
+      `INSERT INTO users (user_id, email, password, firstname, lastname, username, birth_date, google_id, email_verified, created_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, NOW()) 
+       RETURNING id, user_id, email, firstname, lastname, username, birth_date, google_id, email_verified, created_at`,
+      [uniqueUserId, email, hashedPassword, firstname, lastname, username, birthDate, googleId]
     );
     
     const user = result.rows[0];
@@ -395,6 +418,7 @@ app.post('/api/auth/google/register', async (req, res) => {
         <p>Hello ${firstname},</p>
         <p>Thank you for joining BiloGames with your Google account! We're excited to have you.</p>
         <p style="color: #10B981;">✅ Your email is already verified.</p>
+        <p>Your unique ID is: <strong>${user.user_id}</strong></p>
         <p>Ready to play and prove your genius?</p>
         <p>Best regards,<br>The BiloGames Team</p>
       </div>
@@ -405,6 +429,7 @@ app.post('/api/auth/google/register', async (req, res) => {
       message: 'Account created successfully',
       user: {
         id: user.id,
+        odientifiant: user.user_id,
         email: user.email,
         firstname: user.firstname,
         lastname: user.lastname,
@@ -428,7 +453,7 @@ app.post('/api/auth/google/register', async (req, res) => {
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, firstname, lastname, username, birth_date, email_verified, created_at FROM users WHERE id = $1',
+      'SELECT id, user_id, email, firstname, lastname, username, birth_date, email_verified, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
     
@@ -441,6 +466,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
     res.json({ 
       user: {
         id: user.id,
+        odientifiant: user.user_id,
         email: user.email,
         firstname: user.firstname,
         lastname: user.lastname,
@@ -565,7 +591,7 @@ app.put('/api/auth/update', authenticateToken, async (req, res) => {
     updateValues.push(userId);
     const result = await pool.query(
       `UPDATE users SET ${updateFields.join(', ')} WHERE id = $${paramCount} 
-       RETURNING id, email, firstname, lastname, username, birth_date, email_verified, created_at`,
+       RETURNING id, user_id, email, firstname, lastname, username, birth_date, email_verified, created_at`,
       updateValues
     );
     
@@ -578,6 +604,7 @@ app.put('/api/auth/update', authenticateToken, async (req, res) => {
       message: 'Profile updated successfully',
       user: {
         id: user.id,
+        odientifiant: user.user_id,
         email: user.email,
         firstname: user.firstname,
         lastname: user.lastname,
@@ -739,7 +766,7 @@ app.post('/api/auth/verify-email', authenticateToken, async (req, res) => {
     
     // Récupérer l'utilisateur mis à jour
     const userResult = await pool.query(
-      'SELECT id, email, firstname, lastname, username, birth_date, email_verified, created_at FROM users WHERE id = $1',
+      'SELECT id, user_id, email, firstname, lastname, username, birth_date, email_verified, created_at FROM users WHERE id = $1',
       [userId]
     );
     
@@ -754,8 +781,12 @@ app.post('/api/auth/verify-email', authenticateToken, async (req, res) => {
       <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #10B981;">✅ Email Verified!</h2>
         <p>Hello ${user.firstname},</p>
-        <p>Great news! Your email has been <strong>successfully verified</strong>.</p>
-        <p>Your BiloGames account is now fully activated. You can enjoy all features without any restrictions.</p>
+        <p>Thank you for verifying your email address!</p>
+        <p>Your BiloGames account is now <strong>permanently active</strong>.</p>
+        <div style="background: #EEF2FF; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: center;">
+          <p style="margin: 0; color: #6366F1;">Your unique ID:</p>
+          <p style="font-size: 24px; font-weight: bold; margin: 10px 0; color: #4F46E5;">${user.user_id}</p>
+        </div>
         <p>Ready to play and prove your genius? 🎮</p>
         <p>Best regards,<br>The BiloGames Team</p>
       </div>
@@ -766,6 +797,7 @@ app.post('/api/auth/verify-email', authenticateToken, async (req, res) => {
       message: 'Email verified successfully',
       user: {
         id: user.id,
+        odientifiant: user.user_id,
         email: user.email,
         firstname: user.firstname,
         lastname: user.lastname,
