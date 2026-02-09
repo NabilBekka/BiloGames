@@ -19,7 +19,6 @@ export default function CompleteProfileModal({ onClose, googleUser }) {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
 
-  // Préremplir avec les données Google
   useEffect(() => {
     if (googleUser) {
       setFormData(prev => ({
@@ -151,7 +150,7 @@ export default function CompleteProfileModal({ onClose, googleUser }) {
   };
 
   const handleCancel = () => {
-    cancelGoogleSignup();
+    if (cancelGoogleSignup) cancelGoogleSignup();
     onClose();
   };
 
@@ -168,7 +167,7 @@ export default function CompleteProfileModal({ onClose, googleUser }) {
         </button>
 
         <div className={styles.logoSection}>
-          <Logo size="medium" />
+          <Logo size="medium" clickable={false} />
         </div>
 
         <form className={styles.content} onSubmit={handleSubmit}>
@@ -179,7 +178,6 @@ export default function CompleteProfileModal({ onClose, googleUser }) {
 
           {serverError && <div className={styles.error}>{serverError}</div>}
 
-          {/* Email affiché (non modifiable) */}
           <div className={styles.inputGroup}>
             <label>Email</label>
             <input

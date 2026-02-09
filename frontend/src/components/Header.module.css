@@ -34,6 +34,16 @@
 
 .userSection {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.greeting {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--gray-700);
 }
 
 .avatarBtn {

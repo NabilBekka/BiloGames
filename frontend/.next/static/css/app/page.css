@@ -539,6 +539,16 @@
 
 .Header_userSection__s_kKw {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.Header_greeting__ZgPL2 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--gray-700);
 }
 
 .Header_avatarBtn___SAFa {

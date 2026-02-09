@@ -95,6 +95,40 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // Update user profile
+  const updateUser = async (data) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.put(`${API_URL}/auth/update`, data, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+      }
+      setUser(res.data.user);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Update failed' };
+    }
+  };
+
+  // Delete account
+  const deleteAccount = async (password) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/auth/delete`, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { password }
+      });
+      localStorage.removeItem('token');
+      setUser(null);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Delete failed' };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -103,6 +137,8 @@ export function AuthProvider({ children }) {
       register, 
       googleAuth,
       googleRegister,
+      updateUser,
+      deleteAccount,
       logout 
     }}>
       {children}

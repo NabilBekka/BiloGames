@@ -373,6 +373,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
         firstname: user.firstname,
         lastname: user.lastname,
         username: user.username,
+        birthDate: user.birth_date,
         emailVerified: user.email_verified,
         createdAt: user.created_at
       }
@@ -380,6 +381,181 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
     
   } catch (error) {
     console.error('Get user error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ============================================
+// UPDATE USER (protected)
+// ============================================
+app.put('/api/auth/update', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, email, firstname, lastname, username, newPassword, birthDate } = req.body;
+    
+    // Récupérer l'utilisateur actuel
+    const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const currentUser = userResult.rows[0];
+    
+    // Vérifier le mot de passe actuel
+    const validPassword = await bcrypt.compare(currentPassword, currentUser.password);
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Invalid password' });
+    }
+    
+    // Préparer les champs à mettre à jour
+    let updateFields = [];
+    let updateValues = [];
+    let paramCount = 1;
+    let emailChanged = false;
+    
+    if (email && email !== currentUser.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'Invalid email format' });
+      }
+      // Vérifier si l'email existe déjà
+      const emailExists = await pool.query('SELECT id FROM users WHERE email = $1 AND id != $2', [email, userId]);
+      if (emailExists.rows.length > 0) {
+        return res.status(400).json({ error: 'Email already in use' });
+      }
+      updateFields.push(`email = $${paramCount}`);
+      updateValues.push(email);
+      paramCount++;
+      // Si l'email change, il devient non vérifié
+      updateFields.push(`email_verified = false`);
+      emailChanged = true;
+    }
+    
+    if (firstname) {
+      const nameRegex = /^[a-zA-ZÀ-ÿ\s-]+$/;
+      if (!nameRegex.test(firstname)) {
+        return res.status(400).json({ error: 'First name must contain only letters' });
+      }
+      updateFields.push(`firstname = $${paramCount}`);
+      updateValues.push(firstname);
+      paramCount++;
+    }
+    
+    if (lastname) {
+      const nameRegex = /^[a-zA-ZÀ-ÿ\s-]+$/;
+      if (!nameRegex.test(lastname)) {
+        return res.status(400).json({ error: 'Last name must contain only letters' });
+      }
+      updateFields.push(`lastname = $${paramCount}`);
+      updateValues.push(lastname);
+      paramCount++;
+    }
+    
+    if (username) {
+      if (username.length < 3) {
+        return res.status(400).json({ error: 'Username must be at least 3 characters' });
+      }
+      // Vérifier si le username existe déjà
+      const usernameExists = await pool.query('SELECT id FROM users WHERE username = $1 AND id != $2', [username, userId]);
+      if (usernameExists.rows.length > 0) {
+        return res.status(400).json({ error: 'Username already taken' });
+      }
+      updateFields.push(`username = $${paramCount}`);
+      updateValues.push(username);
+      paramCount++;
+    }
+    
+    if (newPassword) {
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+      if (!passwordRegex.test(newPassword)) {
+        return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase and special character' });
+      }
+      const hashedPassword = await bcrypt.hash(newPassword, 12);
+      updateFields.push(`password = $${paramCount}`);
+      updateValues.push(hashedPassword);
+      paramCount++;
+    }
+    
+    if (birthDate) {
+      updateFields.push(`birth_date = $${paramCount}`);
+      updateValues.push(birthDate);
+      paramCount++;
+    }
+    
+    if (updateFields.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+    
+    // Ajouter updated_at
+    updateFields.push(`updated_at = NOW()`);
+    
+    // Exécuter la mise à jour
+    updateValues.push(userId);
+    const result = await pool.query(
+      `UPDATE users SET ${updateFields.join(', ')} WHERE id = $${paramCount} 
+       RETURNING id, email, firstname, lastname, username, birth_date, email_verified, created_at`,
+      updateValues
+    );
+    
+    const user = result.rows[0];
+    
+    // Générer un nouveau token si le username ou l'email a changé
+    const token = generateToken(user);
+    
+    res.json({
+      message: 'Profile updated successfully',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        username: user.username,
+        birthDate: user.birth_date,
+        emailVerified: user.email_verified,
+        createdAt: user.created_at
+      },
+      token
+    });
+    
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ============================================
+// DELETE USER (protected)
+// ============================================
+app.delete('/api/auth/delete', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { password } = req.body;
+    
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required' });
+    }
+    
+    // Récupérer l'utilisateur
+    const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const user = userResult.rows[0];
+    
+    // Vérifier le mot de passe
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Invalid password' });
+    }
+    
+    // Supprimer l'utilisateur
+    await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+    
+    res.json({ message: 'Account deleted successfully' });
+    
+  } catch (error) {
+    console.error('Delete user error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

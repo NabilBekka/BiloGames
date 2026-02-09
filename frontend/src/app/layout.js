@@ -12,6 +12,7 @@ export default function RootLayout({ children }) {
       <head>
         <title>BiloGames - Play and prove your genius</title>
         <meta name="description" content="Collection of brain games to test your intelligence" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
       <body>
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
