@@ -115,7 +115,8 @@ export default function GoogleRegisterModal({ onClose, googleData }) {
       length: password.length >= 8,
       uppercase: /[A-Z]/.test(password),
       lowercase: /[a-z]/.test(password),
-      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+      noSpaces: !/\s/.test(password)
     };
   };
 
@@ -133,7 +134,8 @@ export default function GoogleRegisterModal({ onClose, googleData }) {
       strength.length &&
       strength.uppercase &&
       strength.lowercase &&
-      strength.special
+      strength.special &&
+      strength.noSpaces
     );
   };
 
@@ -269,6 +271,9 @@ export default function GoogleRegisterModal({ onClose, googleData }) {
                 </span>
                 <span className={passwordChecks.special ? styles.valid : styles.invalid}>
                   {passwordChecks.special ? '✓' : '✗'} Special character
+                </span>
+                <span className={passwordChecks.noSpaces ? styles.valid : styles.invalid}>
+                  {passwordChecks.noSpaces ? '✓' : '✗'} No spaces
                 </span>
               </div>
             )}

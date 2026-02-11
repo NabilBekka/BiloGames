@@ -110,7 +110,8 @@ export default function CompleteProfileModal({ onClose, googleUser }) {
       length: password.length >= 8,
       uppercase: /[A-Z]/.test(password),
       lowercase: /[a-z]/.test(password),
-      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+      noSpaces: !/\s/.test(password)
     };
   };
 
@@ -128,7 +129,8 @@ export default function CompleteProfileModal({ onClose, googleUser }) {
       strength.length &&
       strength.uppercase &&
       strength.lowercase &&
-      strength.special
+      strength.special &&
+      strength.noSpaces
     );
   };
 
@@ -268,6 +270,9 @@ export default function CompleteProfileModal({ onClose, googleUser }) {
                 </span>
                 <span className={passwordChecks.special ? styles.valid : styles.invalid}>
                   {passwordChecks.special ? '✓' : '✗'} Special character
+                </span>
+                <span className={passwordChecks.noSpaces ? styles.valid : styles.invalid}>
+                  {passwordChecks.noSpaces ? '✓' : '✗'} No spaces
                 </span>
               </div>
             )}

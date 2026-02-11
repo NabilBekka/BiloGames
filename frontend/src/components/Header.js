@@ -33,18 +33,22 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Calculer les jours restants pour vérifier l'email
+  // Calculer les jours restants pour vérifier l'email (6 jours au total)
   const getDaysRemaining = () => {
     if (!user || user.emailVerified || !user.createdAt) return null;
     const createdDate = new Date(user.createdAt);
-    const deadline = new Date(createdDate.getTime() + 5 * 24 * 60 * 60 * 1000); // 5 jours
+    const deadline = new Date(createdDate.getTime() + 6 * 24 * 60 * 60 * 1000); // 6 jours
     const now = new Date();
     const diffTime = deadline - now;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 0 ? diffDays : 0;
+    // Retourne le nombre de jours (6, 5, 4, 3, 2, 1, 0)
+    if (diffDays > 6) return 6;
+    if (diffDays < 0) return 0;
+    return diffDays;
   };
 
   const daysRemaining = getDaysRemaining();
+  const isLastDay = daysRemaining === 1 || daysRemaining === 0;
 
   const openLogin = () => {
     setShowRegister(false);
@@ -103,13 +107,18 @@ export default function Header() {
         {user ? (
           <div className={styles.userSection} ref={dropdownRef}>
             {!user.emailVerified && daysRemaining !== null && (
-              <button className={styles.verifyAlert} onClick={handleVerifyClick}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left to verify email
+              <button className={`${styles.verifyAlert} ${isLastDay ? styles.verifyAlertUrgent : ''}`} onClick={handleVerifyClick}>
+                {!isLastDay && (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                )}
+                {isLastDay 
+                  ? '⚠️ Last day to verify email!' 
+                  : `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} left to verify email`
+                }
               </button>
             )}
             <span className={styles.greeting}>Hello {user.username}</span>

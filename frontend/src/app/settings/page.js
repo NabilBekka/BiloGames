@@ -89,9 +89,9 @@ export default function SettingsPage() {
         setIsUpdating(false);
         return;
       }
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])(?!.*\s).{8,}$/;
       if (!passwordRegex.test(newPassword)) {
-        setError('Password must be at least 8 characters with uppercase, lowercase and special character');
+        setError('Password must be at least 8 characters with uppercase, lowercase, special character and no spaces');
         setIsUpdating(false);
         return;
       }

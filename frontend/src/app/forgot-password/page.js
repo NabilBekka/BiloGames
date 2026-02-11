@@ -97,7 +97,8 @@ export default function ForgotPasswordPage() {
       length: newPassword.length >= 8,
       uppercase: /[A-Z]/.test(newPassword),
       lowercase: /[a-z]/.test(newPassword),
-      special: /[!@#$%^&*(),.?":{}|<>]/.test(newPassword)
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(newPassword),
+      noSpaces: !/\s/.test(newPassword)
     };
   };
 
@@ -111,7 +112,7 @@ export default function ForgotPasswordPage() {
     }
     
     const strength = getPasswordStrength();
-    if (!strength.length || !strength.uppercase || !strength.lowercase || !strength.special) {
+    if (!strength.length || !strength.uppercase || !strength.lowercase || !strength.special || !strength.noSpaces) {
       setError('Password does not meet requirements');
       return;
     }
@@ -273,6 +274,9 @@ export default function ForgotPasswordPage() {
                       </span>
                       <span className={passwordChecks.special ? styles.valid : styles.invalid}>
                         {passwordChecks.special ? '✓' : '✗'} Special character
+                      </span>
+                      <span className={passwordChecks.noSpaces ? styles.valid : styles.invalid}>
+                        {passwordChecks.noSpaces ? '✓' : '✗'} No spaces
                       </span>
                     </div>
                   )}

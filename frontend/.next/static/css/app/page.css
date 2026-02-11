@@ -658,6 +658,25 @@
   background: rgba(239, 68, 68, 0.2);
 }
 
+.Header_verifyAlertUrgent__FxVuV {
+  background: var(--red);
+  color: white;
+  animation: Header_pulse__ZK1Iy 1.5s infinite;
+}
+
+.Header_verifyAlertUrgent__FxVuV:hover {
+  background: #dc2626;
+}
+
+@keyframes Header_pulse__ZK1Iy {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
 .Header_greeting__ZgPL2 {
   font-family: 'DM Sans', sans-serif;
   font-size: 0.95rem;

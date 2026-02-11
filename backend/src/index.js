@@ -117,10 +117,10 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'First name and last name must contain only letters' });
     }
     
-    // Validation mot de passe (8 chars, maj, min, special)
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    // Validation mot de passe (8 chars, maj, min, special, pas d'espaces)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])(?!.*\s).{8,}$/;
     if (!passwordRegex.test(password)) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase and special character' });
+      return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase, special character and no spaces' });
     }
     
     // Vérifier si email existe
@@ -163,7 +163,7 @@ app.post('/api/auth/register', async (req, res) => {
         <p>Thank you for joining BiloGames! We're excited to have you.</p>
         <div style="background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
           <strong style="color: #B45309;">⚠️ Important:</strong>
-          <p style="margin: 8px 0 0 0; color: #92400E;">Please verify your email within <strong>5 days</strong> to keep your account active. Go to Settings in your account to verify.</p>
+          <p style="margin: 8px 0 0 0; color: #92400E;">Please verify your email within <strong>6 days</strong> to keep your account active. Go to Settings in your account to verify.</p>
         </div>
         <p>Ready to play and prove your genius?</p>
         <p>Best regards,<br>The BiloGames Team</p>
@@ -362,10 +362,10 @@ app.post('/api/auth/google/register', async (req, res) => {
       return res.status(400).json({ error: 'Username must be at least 3 characters' });
     }
     
-    // Validation mot de passe (8 chars, maj, min, special)
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    // Validation mot de passe (8 chars, maj, min, special, pas d'espaces)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])(?!.*\s).{8,}$/;
     if (!passwordRegex.test(password)) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase and special character' });
+      return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase, special character and no spaces' });
     }
     
     // Validation date de naissance
@@ -564,9 +564,9 @@ app.put('/api/auth/update', authenticateToken, async (req, res) => {
     }
     
     if (newPassword) {
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])(?!.*\s).{8,}$/;
       if (!passwordRegex.test(newPassword)) {
-        return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase and special character' });
+        return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase, special character and no spaces' });
       }
       const hashedPassword = await bcrypt.hash(newPassword, 12);
       updateFields.push(`password = $${paramCount}`);
@@ -914,10 +914,10 @@ app.post('/api/auth/reset-password', async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
     
-    // Validation mot de passe
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    // Validation mot de passe (pas d'espaces)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])(?!.*\s).{8,}$/;
     if (!passwordRegex.test(newPassword)) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase and special character' });
+      return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase, special character and no spaces' });
     }
     
     // Vérifier le code
@@ -949,15 +949,15 @@ app.post('/api/auth/reset-password', async (req, res) => {
 
 // ============================================
 // CLEANUP UNVERIFIED ACCOUNTS (automatic)
-// Supprime les comptes non vérifiés après 5 jours
+// Supprime les comptes non vérifiés après 6 jours
 // ============================================
 const cleanupUnverifiedAccounts = async () => {
   try {
-    // Trouver les utilisateurs à supprimer (non vérifiés, créés il y a plus de 5 jours)
+    // Trouver les utilisateurs à supprimer (non vérifiés, créés il y a plus de 6 jours)
     const result = await pool.query(
       `SELECT id, email, firstname FROM users 
        WHERE email_verified = false 
-       AND created_at < NOW() - INTERVAL '5 days'`
+       AND created_at < NOW() - INTERVAL '6 days'`
     );
     
     for (const user of result.rows) {
@@ -969,7 +969,7 @@ const cleanupUnverifiedAccounts = async () => {
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
           <h2 style="color: #EF4444;">Account Deleted</h2>
           <p>Hello ${user.firstname},</p>
-          <p>Your BiloGames account has been <strong>permanently deleted</strong> because you did not verify your email within 5 days of registration.</p>
+          <p>Your BiloGames account has been <strong>permanently deleted</strong> because you did not verify your email within 6 days of registration.</p>
           <p>If you wish to use BiloGames, you can create a new account at any time.</p>
           <p>Best regards,<br>The BiloGames Team</p>
         </div>

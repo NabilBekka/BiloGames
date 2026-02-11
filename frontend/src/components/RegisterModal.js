@@ -112,7 +112,8 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
       length: password.length >= 8,
       uppercase: /[A-Z]/.test(password),
       lowercase: /[a-z]/.test(password),
-      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+      noSpaces: !/\s/.test(password)
     };
     return checks;
   };
@@ -132,7 +133,8 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
       strength.length &&
       strength.uppercase &&
       strength.lowercase &&
-      strength.special
+      strength.special &&
+      strength.noSpaces
     );
   };
 
@@ -273,6 +275,9 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                 </span>
                 <span className={passwordChecks.special ? styles.valid : styles.invalid}>
                   {passwordChecks.special ? '✓' : '✗'} Special character
+                </span>
+                <span className={passwordChecks.noSpaces ? styles.valid : styles.invalid}>
+                  {passwordChecks.noSpaces ? '✓' : '✗'} No spaces
                 </span>
               </div>
             )}
